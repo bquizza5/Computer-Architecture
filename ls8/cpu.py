@@ -8,6 +8,8 @@ hlt = 0b00000001
 ldi = 0b10000010
 prn = 0b01000111
 mul = 0b10100010
+push = 0b01000101
+pop = 0b01000110
 
 class CPU:
     """Main CPU class."""
@@ -17,6 +19,7 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.stack_pointer = 256
 
 
     def ram_read(self, location):
@@ -25,7 +28,13 @@ class CPU:
     def ram_write(self, value, location):
         self.ram[location] = value
         
-
+    def stack_push(self, value):
+        self.stack_pointer -= 1
+        self.ram[self.stack_pointer] = value
+        
+    def stack_pop(self):
+        print(self.ram[self.stack_pointer])
+        self.stack_pointer += 1
 
     def load(self, name):
         """Load a program into memory."""
@@ -96,6 +105,7 @@ class CPU:
 
         while running:
             IR = self.ram[self.pc]
+            # print(self.ram)
 
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
@@ -104,17 +114,27 @@ class CPU:
                 sys.exit()
 
             elif IR == ldi:
-                self.reg[operand_a] = operand_b
+                self.ram[operand_a] = operand_b
                 self.pc += 3
 
             elif IR == prn:
-                print(self.reg[operand_a])
+                self.ram[operand_a]
                 self.pc += 2
 
             elif IR == mul:
-                print(self.reg[operand_a] * self.reg[operand_b])
+                print(self.ram[operand_a] * self.ram[operand_b])
                 self.pc += 2
 
+            elif IR == push:
+                value = self.ram[operand_a]
+                self.stack_push(value)
+                self.pc += 2
+
+            elif IR == pop:
+                self.stack_pop()
+                self.pc += 2
+                # print(self.ram)
+            
             else:
                 print('bad IR', IR)
                 sys.exit()
