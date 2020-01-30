@@ -49,7 +49,6 @@ class CPU:
     def ret(self):
         #grab old pc from stack and set pc to it
         self.pc = self.stack_pop()
-        pass
 
     def add(self, value1, value2):
         print('add', value1 + value2)
