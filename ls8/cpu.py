@@ -4,12 +4,15 @@ import sys
 
 # instructions
 
-hlt = 0b00000001
-ldi = 0b10000010
+hlt = 0b00000001 
+ldi = 0b10000010 
 prn = 0b01000111
 mul = 0b10100010
 push = 0b01000101
 pop = 0b01000110
+call = 0b01010000
+ret = 0b00010001
+add = 0b10100000
 
 class CPU:
     """Main CPU class."""
@@ -33,9 +36,24 @@ class CPU:
         self.ram[self.stack_pointer] = value
         
     def stack_pop(self):
-        print(self.ram[self.stack_pointer])
+        popped_value = self.ram[self.stack_pointer]
         self.stack_pointer += 1
+        return popped_value
 
+    def call(self, location):
+        # grab pc + 1 and save it in stack
+        self.stack_push(self.pc + 2)
+        # change pc to location
+        self.pc = location
+
+    def ret(self):
+        #grab old pc from stack and set pc to it
+        self.pc = self.stack_pop()
+        pass
+
+    def add(self, value1, value2):
+        print('add', value1 + value2)
+    
     def load(self, name):
         """Load a program into memory."""
 
@@ -105,7 +123,7 @@ class CPU:
 
         while running:
             IR = self.ram[self.pc]
-            # print(self.ram)
+            # print(IR)
 
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
@@ -118,12 +136,12 @@ class CPU:
                 self.pc += 3
 
             elif IR == prn:
-                self.ram[operand_a]
+                print('print',self.ram[operand_a])
                 self.pc += 2
 
             elif IR == mul:
                 print(self.ram[operand_a] * self.ram[operand_b])
-                self.pc += 2
+                self.pc += 3
 
             elif IR == push:
                 value = self.ram[operand_a]
@@ -131,10 +149,19 @@ class CPU:
                 self.pc += 2
 
             elif IR == pop:
-                self.stack_pop()
+                print('pop', self.stack_pop())
                 self.pc += 2
-                # print(self.ram)
             
+            elif IR == call:
+                self.call(self.ram[operand_a])
+
+            elif IR == ret:
+                self.ret()
+
+            elif IR == add:
+                self.add(self.ram[operand_a], self.ram[operand_b])
+                self.pc += 3
+
             else:
                 print('bad IR', IR)
                 sys.exit()
