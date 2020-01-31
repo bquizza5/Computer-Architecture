@@ -13,6 +13,12 @@ pop = 0b01000110
 call = 0b01010000
 ret = 0b00010001
 add = 0b10100000
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
+
+
 
 class CPU:
     """Main CPU class."""
@@ -24,6 +30,10 @@ class CPU:
         self.pc = 0
         self.stack_pointer = 256
 
+        self.flags = [0] * 8
+            #L = self.flags[5]
+            #G = self.flags[6]
+            #E = self.flags[7]
 
     def ram_read(self, location):
         return self.ram[location]
@@ -119,6 +129,7 @@ class CPU:
     def run(self):
         """Run the CPU."""
         running = True
+        
 
         while running:
             IR = self.ram[self.pc]
@@ -131,19 +142,19 @@ class CPU:
                 sys.exit()
 
             elif IR == ldi:
-                self.ram[operand_a] = operand_b
+                self.reg[operand_a] = operand_b
                 self.pc += 3
 
             elif IR == prn:
-                print('print',self.ram[operand_a])
+                print('print',self.reg[operand_a])
                 self.pc += 2
 
             elif IR == mul:
-                print(self.ram[operand_a] * self.ram[operand_b])
+                print(self.reg[operand_a] * self.reg[operand_b])
                 self.pc += 3
 
             elif IR == push:
-                value = self.ram[operand_a]
+                value = self.reg[operand_a]
                 self.stack_push(value)
                 self.pc += 2
 
@@ -152,14 +163,39 @@ class CPU:
                 self.pc += 2
             
             elif IR == call:
-                self.call(self.ram[operand_a])
+                self.call(self.reg[operand_a])
 
             elif IR == ret:
                 self.ret()
 
             elif IR == add:
-                self.add(self.ram[operand_a], self.ram[operand_b])
+                self.add(self.reg[operand_a], self.reg[operand_b])
                 self.pc += 3
+
+            elif IR == CMP:
+                if self.reg[operand_a] == self.reg[operand_b]:
+                    self.flags[5] = 1
+                if self.reg[operand_a] < self.reg[operand_b]:
+                    self.flags[6] = 1
+                if self.reg[operand_a] > self.reg[operand_b]:
+                    self.flags[7] = 1                
+                
+                self.pc += 3
+            
+            elif IR == JMP:
+                self.pc = self.reg[operand_a]
+            
+            elif IR == JEQ:
+                if self.flags[5] == 1:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
+
+            elif IR == JNE:
+                if self.flags[5] == 0:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
 
             else:
                 print('bad IR', IR)
